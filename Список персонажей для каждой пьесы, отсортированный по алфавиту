@@ -1,0 +1,22 @@
+//Датасет 2. Список персонажей для каждой пьесы, отсортированный по алфавиту.
+db.getCollection("shekspir").aggregate(
+    { $unwind: '$acts' },
+    { $unwind: '$acts.scenes' },
+    { $unwind: '$acts.scenes.action' },
+    {
+        $group:
+            {
+                _id: "$_id",
+                characters: { $addToSet: "$acts.scenes.action.character" },
+            }
+    },
+    { $unwind: '$characters' },
+    { $sort: { characters: 1 } },
+    {
+        $group:
+            {
+                _id: "$_id",
+                'Персонажи по убыванию': { $push: "$characters" },
+            }
+    }
+)    
