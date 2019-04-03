@@ -1,0 +1,36 @@
+//Датасет 2. Найдите сцену с самым большим количеством реплик в сцене (надо указать название пьесы, акт и сцену)
+db.getCollection("shekspir").aggregate(
+    { $unwind: '$acts' },
+    { $unwind: '$acts.scenes' },
+    { $unwind: '$acts.scenes.action' },
+    {
+        $project:
+            {
+                '_id': "$_id",
+                'act': "$acts.title",
+                'scene': "$acts.scenes.title",
+                'action': "$acts.scenes.action.character",
+                'count': { $size: "$acts.scenes.action.says" }
+            }
+    },
+    {
+        $group:
+            {
+                '_id': "$scene",
+                'piece': { $first: "$_id" },
+                'act': { $first: "$act" },
+                'count': { $sum: "$count" }
+            }
+    },
+    { $sort: { "count": -1 } },
+    { $limit: 1 },
+    {
+        $project: {
+            '_id': 0,
+            'Пьеса': "$piece",
+            'Акт': "$act",
+            'Сцена': "$_id",
+            'Количество реплик в сцене': "$count"
+        }
+    }
+)
